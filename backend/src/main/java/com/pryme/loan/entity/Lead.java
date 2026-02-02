@@ -1,15 +1,33 @@
 package com.pryme.loan.entity;
+
 import jakarta.persistence.*;
-@Entity @Table(name = "leads")
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = "leads")
 public class Lead {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String mobile;
-    private String loanType;
-    // Getters/Setters...
-    public Long getId() { return id; } public void setId(Long id) { this.id = id; }
-    public String getName() { return name; } public void setName(String name) { this.name = name; }
-    public String getMobile() { return mobile; } public void setMobile(String m) { this.mobile = m; }
-    public String getLoanType() { return loanType; } public void setLoanType(String t) { this.loanType = t; }
+
+    private String email;
+
+    @Column(nullable = false)
+    private String loanType; // e.g., PERSONAL, HOME, BUSINESS
+
+    private String status = "NEW"; // Default status
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }
