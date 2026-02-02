@@ -43,6 +43,7 @@ public class SecurityConfig {
                         // 1. Public Routes (Versioned)
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll() // Calculators & Recs
+                        .requestMatchers("/api/v1/calculate/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // 2. Admin Routes (Strict RBAC)
