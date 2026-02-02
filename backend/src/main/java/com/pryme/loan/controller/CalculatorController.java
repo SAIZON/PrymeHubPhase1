@@ -11,7 +11,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 @RestController
-@RequestMapping("/api/calculators")
+@RequestMapping("/api/v1/calculators")
 @CrossOrigin(origins = "http://localhost:3000")
 public class CalculatorController {
 

@@ -40,13 +40,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // PUBLIC ROUTES (No Token Needed)
-                        .requestMatchers("/api/auth/**").permitAll() // Login/Register
-                        .requestMatchers("/api/calculators/**").permitAll() // Calculators
-                        .requestMatchers("/api/recommendations/**").permitAll() // Bank Finder
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger
+                        // 1. Public Routes (Versioned)
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/public/**").permitAll() // Calculators & Recs
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // PROTECTED ROUTES (Token Required)
+                        // 2. Admin Routes (Strict RBAC)
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                        // 3. Authenticated User Routes
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -77,7 +79,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend Only
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

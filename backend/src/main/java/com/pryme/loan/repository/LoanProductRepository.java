@@ -10,13 +10,13 @@ import java.util.List;
 @Repository
 public interface LoanProductRepository extends JpaRepository<LoanProduct, Long> {
 
-    // Find products where:
-    // 1. Type matches (e.g., Personal Loan)
-    // 2. Product's min salary is <= User's income
-    // 3. Product's min CIBIL is <= User's CIBIL
+    // Used by Recommendation Engine (Day 6)
     List<LoanProduct> findByTypeAndMinSalaryLessThanEqualAndMinCibilLessThanEqual(
             String type,
             BigDecimal monthlyIncome,
             int cibilScore
     );
+
+    // Used by Admin Bank Manager (Day 9) 
+    List<LoanProduct> findByBankId(Long bankId);
 }
