@@ -18,7 +18,7 @@ public class RewardController {
     private final RewardService rewardService;
 
     // --- Public: Calculator ---
-    @PostMapping("/calculate/rewards")
+    @PostMapping("/public/calculate/rewards")
     public ResponseEntity<List<RewardCalculationResponse>> calculateRewards(@RequestBody RewardCalculationRequest request) {
         return ResponseEntity.ok(rewardService.calculateBestRewards(request));
     }

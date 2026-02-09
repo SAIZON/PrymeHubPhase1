@@ -26,6 +26,7 @@ public class LeadController {
         lead.setMobile(request.getMobile());
         lead.setEmail(request.getEmail());
         lead.setLoanType(request.getLoanType());
+        lead.setMessage(request.getMessage());
         // Internal fields set automatically
 
         return ResponseEntity.ok(leadService.createLead(lead));

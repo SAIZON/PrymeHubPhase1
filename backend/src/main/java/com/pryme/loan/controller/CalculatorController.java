@@ -1,5 +1,7 @@
 package com.pryme.loan.controller;
 
+import com.pryme.loan.dto.EligibilityRequest;
+import com.pryme.loan.dto.EligibilityResponse;
 import com.pryme.loan.dto.PrePaymentRequest;
 import com.pryme.loan.dto.PrePaymentResponse;
 import com.pryme.loan.service.LoanSimulationService;
@@ -7,12 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 
 @RestController
-@RequestMapping("/api/v1/calculators")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/v1/public/calculators")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
 public class CalculatorController {
 
     private final LoanSimulationService loanSimulationService;
@@ -21,11 +22,18 @@ public class CalculatorController {
         this.loanSimulationService = loanSimulationService;
     }
 
+    // 1. EMI Calculator
     @GetMapping("/emi")
     public ResponseEntity<BigDecimal> calculateEMI(
             @RequestParam double principal,
             @RequestParam double rate,
             @RequestParam double years) {
+
+        if (rate <= 0) {
+            BigDecimal totalMonths = BigDecimal.valueOf(years * 12);
+            if (totalMonths.compareTo(BigDecimal.ZERO) == 0) return ResponseEntity.ok(BigDecimal.ZERO);
+            return ResponseEntity.ok(BigDecimal.valueOf(principal).divide(totalMonths, 2, RoundingMode.HALF_UP));
+        }
 
         BigDecimal p = BigDecimal.valueOf(principal);
         BigDecimal r = BigDecimal.valueOf(rate)
@@ -41,9 +49,15 @@ public class CalculatorController {
         return ResponseEntity.ok(emi);
     }
 
+    // 2. Pre-payment Calculator
     @PostMapping("/prepayment-savings")
     public ResponseEntity<PrePaymentResponse> calculatePrePayment(@RequestBody PrePaymentRequest request) {
-        // FIX: Changed 'calculateSavings' to 'calculatePrePaymentSavings'
         return ResponseEntity.ok(loanSimulationService.calculatePrePaymentSavings(request));
+    }
+
+    // 3. Eligibility Calculator (YOU WERE MISSING THIS)
+    @PostMapping("/eligibility")
+    public ResponseEntity<EligibilityResponse> checkEligibility(@RequestBody EligibilityRequest request) {
+        return ResponseEntity.ok(loanSimulationService.checkEligibility(request));
     }
 }

@@ -18,7 +18,9 @@ public class SwaggerConfig {
                         .title("Pryme Loan API")
                         .description("Backend API for Pryme Fintech - Phase 2 (Security Enabled)")
                         .version("v1.0"))
+                // 1. Add Security Requirement (The Lock Icon)
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                // 2. Define the Security Scheme (JWT)
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()));
     }

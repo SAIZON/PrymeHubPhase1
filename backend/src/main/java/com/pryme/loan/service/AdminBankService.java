@@ -7,7 +7,6 @@ import com.pryme.loan.repository.BankRepository;
 import com.pryme.loan.repository.LoanProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.pryme.loan.exception.ResourceNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,6 +27,8 @@ public class AdminBankService {
         bank.setName(dto.name());
         bank.setLogoUrl(dto.logoUrl());
         bank.setActive(dto.active());
+
+        bank.setBaseInterestRate(dto.baseInterestRate());
         return bankRepository.save(bank);
     }
 
@@ -43,7 +44,22 @@ public class AdminBankService {
         return bankRepository.save(bank);
     }
 
-    // --- FIX: Update Specific Loan Product instead of All Bank Products ---
+
+
+    @Transactional
+    public Bank updateBank(Long id, BankDto dto) {
+        Bank bank = bankRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bank not found"));
+
+        bank.setName(dto.name());
+        bank.setLogoUrl(dto.logoUrl());
+        bank.setActive(dto.active()); // Optional: Update active status here if you want
+        bank.setBaseInterestRate(dto.baseInterestRate());
+
+        return bankRepository.save(bank);
+    }
+
+
     @Transactional
     public void updateLoanProductInterestRate(Long productId, BigDecimal newRate) {
         LoanProduct product = loanProductRepository.findById(productId)
@@ -51,12 +67,5 @@ public class AdminBankService {
 
         product.setInterestRate(newRate);
         loanProductRepository.save(product);
-    }
-
-    public Bank toggleBankStatus(Long id) {
-        Bank bank = bankRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Bank not found with id: " + id)); // UPDATED
-        bank.setActive(!bank.isActive());
-        return bankRepository.save(bank);
     }
 }

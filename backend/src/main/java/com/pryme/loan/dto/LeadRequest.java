@@ -9,4 +9,5 @@ public class LeadRequest {
     private String mobile;
     private String email;
     private String loanType;
+    private String message;
 }

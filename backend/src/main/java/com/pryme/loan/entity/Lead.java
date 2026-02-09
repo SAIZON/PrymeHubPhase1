@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -13,7 +14,7 @@ public class Lead {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
@@ -27,6 +28,8 @@ public class Lead {
     private String loanType; // e.g., PERSONAL, HOME, BUSINESS
 
     private String status = "NEW"; // Default status
+    @Column(columnDefinition = "TEXT")
+    private String message;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

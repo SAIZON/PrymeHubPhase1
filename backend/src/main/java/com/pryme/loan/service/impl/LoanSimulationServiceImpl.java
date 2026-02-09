@@ -1,5 +1,7 @@
 package com.pryme.loan.service.impl;
 
+import com.pryme.loan.dto.EligibilityRequest;
+import com.pryme.loan.dto.EligibilityResponse;
 import com.pryme.loan.dto.PrePaymentRequest;
 import com.pryme.loan.dto.PrePaymentResponse;
 import com.pryme.loan.service.LoanSimulationService;
@@ -118,5 +120,48 @@ public class LoanSimulationServiceImpl implements LoanSimulationService {
             this.monthsTaken = monthsTaken;
             this.lastEmiAmount = lastEmiAmount;
         }
+    }
+
+    @Override
+    public EligibilityResponse checkEligibility(EligibilityRequest request) {
+        double income = request.getMonthlyIncome();
+        double existingEmis = request.getExistingEmis();
+        String occupation = request.getOccupation() != null ? request.getOccupation().toLowerCase() : "salaried";
+
+        // 1. Determine FOIR (Fixed Obligation to Income Ratio)
+        double maxFoir;
+        switch (occupation) {
+            case "self-employed":
+                maxFoir = 0.40; // 40%
+                break;
+            case "professional":
+                maxFoir = 0.45; // 45%
+                break;
+            default: // "salaried"
+                maxFoir = 0.50; // 50%
+        }
+
+        // 2. Calculate Available Capacity
+        double maxEmiCapacity = (income * maxFoir) - existingEmis;
+
+        if (maxEmiCapacity <= 0) {
+            return new EligibilityResponse(false, 0, 0);
+        }
+
+        // 3. Calculate Max Loan (Reverse EMI formula)
+        // Assumption: 8.5% Interest, 20 Years Tenure
+        double annualRate = 8.5;
+        int tenureYears = 20;
+
+        double monthlyRate = annualRate / 12 / 100;
+        double months = tenureYears * 12;
+
+        // Formula: P = E * ( (1+r)^n - 1 ) / ( r * (1+r)^n )
+        double numerator = Math.pow(1 + monthlyRate, months) - 1;
+        double denominator = monthlyRate * Math.pow(1 + monthlyRate, months);
+
+        double maxLoanAmount = maxEmiCapacity * (numerator / denominator);
+
+        return new EligibilityResponse(true, Math.round(maxLoanAmount), Math.round(maxEmiCapacity));
     }
 }

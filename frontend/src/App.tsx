@@ -6,8 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import Index from "./pages/Index";
 import Compare from "./pages/Compare";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+// import {AuthModal} from "./components/auth/AuthModal.tsx";
+
+// import Login from "../to be deleted/Login.tsx";
+// import Signup from "../to be deleted/Signup.tsx";
 import Dashboard from "./pages/Dashboard";
 import Calculators from "./pages/Calculators";
 import About from "./pages/About";
@@ -17,6 +19,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageBanks from "./pages/admin/ManageBanks";
 import Applications from "./pages/admin/Applications";
 import Offers from "./pages/admin/Offers";
+import ManageBlogs from "./pages/admin/ManageBlogs";
 import NotFound from "./pages/NotFound";
 
 // New Standard Pages
@@ -66,8 +69,8 @@ const App = () => (
           </Route>
 
           {/* Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/*<Route path="/login" element={<Login />} />*/}
+          {/*<Route path="/signup" element={<Signup />} />*/}
 
           {/* Applicant Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
@@ -78,6 +81,7 @@ const App = () => (
             <Route path="banks" element={<ManageBanks />} />
             <Route path="applications" element={<Applications />} />
             <Route path="offers" element={<Offers />} />
+              <Route path="blogs" element={<ManageBlogs />} />
           </Route>
 
           {/* 404 */}
