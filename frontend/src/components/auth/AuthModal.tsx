@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -7,13 +7,13 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog.tsx";
-import { Input } from "@/components/ui/input.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
-import { useToast } from "@/hooks/use-toast.ts";
-import { login, register, LoginRequest, RegisterRequest } from "@/service/auth.ts"; // Fixed Imports
-import { useNavigate } from "react-router-dom";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { login, register, LoginRequest, RegisterRequest } from "@/service/auth";
+import { AxiosError } from "axios";
 
 interface AuthModalProps {
     onLoginSuccess?: () => void;
@@ -24,9 +24,8 @@ export function AuthModal({ onLoginSuccess }: AuthModalProps) {
     const [activeTab, setActiveTab] = useState("login");
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
-    const navigate = useNavigate();
+    // Removed useNavigate since we don't redirect anymore
 
-    // Typed State
     const [loginData, setLoginData] = useState<LoginRequest>({ email: "", password: "" });
     const [registerData, setRegisterData] = useState<RegisterRequest>({
         name: "",
@@ -41,26 +40,30 @@ export function AuthModal({ onLoginSuccess }: AuthModalProps) {
         setLoading(true);
         try {
             const response = await login(loginData);
-
-            // Save token and user
             const { accessToken, user } = response.data;
+
+            if (!accessToken || !user) throw new Error("Invalid response from server");
+
             localStorage.setItem("token", accessToken);
             localStorage.setItem("user", JSON.stringify(user));
 
-            toast({
-                title: "Welcome back!",
-                description: "You have successfully logged in.",
-            });
+            // Dispatch Event
+            window.dispatchEvent(new Event("auth-change"));
+
+            toast({ title: "Welcome back!", description: "You have successfully logged in." });
 
             setIsOpen(false);
             if (onLoginSuccess) onLoginSuccess();
-            navigate("/dashboard");
+
+            // REMOVED: navigate("/dashboard");
+            // User now stays on the same page.
+
         } catch (err) {
-            console.error(err);
+            const error = err as AxiosError<{ message: string }>;
             toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: err.response?.data?.message || "Invalid credentials",
+                description: error.response?.data?.message || "Invalid credentials",
             });
         } finally {
             setLoading(false);
@@ -72,17 +75,14 @@ export function AuthModal({ onLoginSuccess }: AuthModalProps) {
         setLoading(true);
         try {
             await register(registerData);
-            toast({
-                title: "Account Created!",
-                description: "Please login with your new credentials.",
-            });
+            toast({ title: "Account Created!", description: "Please login with your new credentials." });
             setActiveTab("login");
         } catch (err) {
-            console.error(err);
+            const error = err as AxiosError<{ message: string }>;
             toast({
                 variant: "destructive",
                 title: "Registration Failed",
-                description: err.response?.data?.message || "Something went wrong",
+                description: error.response?.data?.message || "Something went wrong",
             });
         } finally {
             setLoading(false);

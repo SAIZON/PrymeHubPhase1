@@ -3,15 +3,19 @@ package com.pryme.loan.service;
 import com.pryme.loan.dto.AuthResponse;
 import com.pryme.loan.dto.LoginRequest;
 import com.pryme.loan.dto.RegisterRequest;
+import com.pryme.loan.dto.UserDto;
+import com.pryme.loan.entity.Role;
 import com.pryme.loan.entity.User;
 import com.pryme.loan.repository.UserRepository;
 import com.pryme.loan.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -19,48 +23,43 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil,
-                       AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
-    }
-
     public AuthResponse register(RegisterRequest request) {
-        // 1. Check if user exists
-        if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new RuntimeException("User already exists with email: " + request.email());
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
         }
 
-        // 2. Create new user entity
         User user = new User();
-        user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.password())); // Critical: Hash the password
-        user.setFullName(request.fullName());
-        user.setMobile(request.mobile());
-        user.setRole("USER"); // Default role
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setMobile(request.getMobile());
+        user.setRole(Role.USER);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        String token = jwtUtil.generateToken(savedUser.getEmail());
 
-        // 3. Auto-login (Generate Token)
-        String token = jwtUtil.generateToken(user.getEmail());
-        return new AuthResponse(token, user.getRole(), user.getFullName());
+        return new AuthResponse(token, mapToDto(savedUser));
     }
 
     public AuthResponse login(LoginRequest request) {
-        // 1. Authenticate using Spring Security Manager
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        // 2. If successful, fetch user and generate token
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return new AuthResponse(token, user.getRole(), user.getFullName());
+
+        return new AuthResponse(token, mapToDto(user));
+    }
+
+    private UserDto mapToDto(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }

@@ -28,6 +28,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { getCurrentUser, User as AuthUser } from "@/service/auth"; // Renamed to avoid conflict with Lucide icon
+import {
+    getDashboardStats,
+    getRecentApplications,
+    getNotifications,
+    getExternalLoans,
+    DashboardStats,
+    Application,
+    Notification,
+    ExternalLoan
+} from "@/service/dashboard";
+
 
 const applicationSteps = [
   { id: 1, name: "Submitted", status: "completed" },
@@ -65,7 +79,31 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ApplicationTimeline() {
+function ApplicationTimeline({ application }: { application?: Application }) {
+    // Get the most recent application status
+
+    const currentStatus = application?.status || 'SUBMITTED';
+
+    // Define steps dynamically
+    const steps = [
+        { id: 1, name: "Submitted", status: "pending" },
+        { id: 2, name: "Verified", status: "pending" },
+        { id: 3, name: "Processing", status: "pending" },
+        { id: 4, name: "Disbursed", status: "pending" },
+    ];
+
+    // Calculate which step is active
+    let activeIndex = 0;
+    if (currentStatus === 'SUBMITTED') activeIndex = 1;
+    else if (currentStatus === 'VERIFIED') activeIndex = 2;
+    else if (currentStatus === 'PROCESSING') activeIndex = 3;
+    else if (currentStatus === 'APPROVED' || currentStatus === 'DISBURSED') activeIndex = 4;
+
+    const dynamicSteps = steps.map((step, index) => {
+        if (index < activeIndex) return { ...step, status: "completed" };
+        if (index === activeIndex - 1) return { ...step, status: "current" };
+        return step;
+    });
   return (
     <Card className="mb-8 shadow-card border-border/50">
       <CardHeader>
@@ -486,6 +524,46 @@ function ProfileTab() {
 }
 
 export default function Dashboard() {
+
+    const { toast } = useToast();
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<AuthUser | null>(null);
+
+    // Data States
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [applications, setApplications] = useState<Application[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [externalLoans, setExternalLoans] = useState<ExternalLoan[]>([]);
+
+    const latestApp = applications.length > 0 ? applications[0] : undefined;
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const currentUser = getCurrentUser();
+                if (currentUser) setUser(currentUser);
+
+                // Fetch API Data
+                const [statsData, appsData, notifData, loansData] = await Promise.all([
+                    getDashboardStats(),
+                    getRecentApplications(),
+                    getNotifications(),
+                    getExternalLoans()
+                ]);
+
+                setStats(statsData.data);
+                setApplications(appsData.data);
+                setNotifications(notifData.data);
+                setExternalLoans(loansData.data);
+            } catch (error) {
+                console.error("Dashboard sync failed", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Dashboard Header */}
@@ -552,13 +630,62 @@ export default function Dashboard() {
             <DocumentsTab />
           </TabsContent>
 
-          <TabsContent value="loans">
-            <LoansTab />
-          </TabsContent>
+            <TabsContent value="loans">
+                {/* Keep your existing Card Header */}
+                <CardContent>
+                    <div className="space-y-4">
+                        {externalLoans.length === 0 ? (
+                            <p className="text-center text-muted-foreground py-4">No external loans found.</p>
+                        ) : (
+                            externalLoans.map((loan) => (
+                                // Use your EXACT existing loan item design here
+                                <div key={loan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
+                                            <Home className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{loan.bankName} - {loan.loanType}</p>
+                                            <p className="text-sm text-muted-foreground">EMI: ₹{loan.emiAmount.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold">₹{loan.outstandingAmount.toLocaleString()}</p>
+                                        <p className="text-xs text-muted-foreground">Outstanding</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </CardContent>
+            </TabsContent>
 
-          <TabsContent value="notifications">
-            <NotificationsTab />
-          </TabsContent>
+            <TabsContent value="notifications">
+                {/* Keep your existing Card Header */}
+                <CardContent>
+                    <div className="space-y-4">
+                        {notifications.length === 0 ? (
+                            <p className="text-center text-muted-foreground py-4">No new notifications.</p>
+                        ) : (
+                            notifications.map((notif) => (
+                                // Use your EXACT existing notification item design here
+                                <div key={notif.id} className="flex items-start gap-4 p-3 border-b last:border-0">
+                                    <div className="mt-1 rounded-full p-2 bg-blue-100 text-blue-600">
+                                        <Bell className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-sm">{notif.title}</p>
+                                        <p className="text-sm text-muted-foreground">{notif.message}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {new Date(notif.createdAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </CardContent>
+            </TabsContent>
 
           <TabsContent value="profile">
             <ProfileTab />

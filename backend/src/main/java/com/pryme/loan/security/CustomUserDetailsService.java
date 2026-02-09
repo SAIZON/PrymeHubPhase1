@@ -21,10 +21,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
+        // FIXED:
+        // 1. Used user.getPassword() (standard field name)
+        // 2. Converted Role enum to String for roles() method
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
-                .password(user.getPasswordHash()) // The hashed password from DB
-                .roles(user.getRole()) // e.g., "ADMIN" or "USER"
+                .password(user.getPassword())
+                .roles(user.getRole().name()) // Fix: Convert Enum to String
                 .build();
     }
 }

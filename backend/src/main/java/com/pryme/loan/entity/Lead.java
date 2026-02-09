@@ -3,7 +3,6 @@ package com.pryme.loan.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,25 +10,22 @@ import java.util.UUID;
 @Entity
 @Table(name = "leads")
 public class Lead {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID) // <--- FIXED: Was likely IDENTITY
     private UUID id;
 
-    @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
+    private String email;
     private String mobile;
 
-    private String email;
-
+    // e.g. "Personal Loan", "Home Loan"
     @Column(nullable = false)
-    private String loanType; // e.g., PERSONAL, HOME, BUSINESS
+    private String loanType;
 
-    private String status = "NEW"; // Default status
     @Column(columnDefinition = "TEXT")
     private String message;
+
+    private String status; // NEW, CONTACTED, CLOSED
 
     @CreationTimestamp
     private LocalDateTime createdAt;

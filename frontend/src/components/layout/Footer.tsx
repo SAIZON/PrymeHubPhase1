@@ -32,20 +32,14 @@ export function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
                     {/* Brand Column */}
                     <div className="col-span-2 md:col-span-1">
-                        {/* FIXED: Removed the outer <Link> wrapper here */}
                         <div className="flex items-center gap-2 mb-4">
                             <Link to="/" className="flex items-center gap-2">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                                    <img
-                                        src="/favicon.ico"
-                                        alt="PRYME logo"
-                                        className="h-5 w-5"
-                                    />
+                                    <span className="text-lg font-bold text-primary-foreground">P</span>
                                 </div>
                                 <span className="text-xl font-bold text-foreground">PRYME</span>
                             </Link>
                         </div>
-
                         <p className="text-sm text-muted-foreground leading-relaxed">
                             Your trusted partner for finding the perfect loan. Compare offers from top banks instantly.
                         </p>
