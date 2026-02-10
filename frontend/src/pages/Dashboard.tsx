@@ -31,15 +31,18 @@ import {
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, User as AuthUser } from "@/service/auth"; // Renamed to avoid conflict with Lucide icon
+
 import {
     getDashboardStats,
     getRecentApplications,
     getNotifications,
     getExternalLoans,
+    getDocuments, // <--- NEW
     DashboardStats,
     Application,
     Notification,
-    ExternalLoan
+    ExternalLoan,
+    LoanDocument // <--- NEW
 } from "@/service/dashboard";
 
 
@@ -155,50 +158,60 @@ function ApplicationTimeline({ application }: { application?: Application }) {
   );
 }
 
-function DocumentsTab() {
-  return (
-    <div className="space-y-6">
-      {/* Upload Zones */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {["KYC Documents", "Income Proof", "Property Documents"].map((category) => (
-          <div
-            key={category}
-            className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 hover:bg-accent/30 transition-colors cursor-pointer"
-          >
-            <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-            <p className="font-medium text-foreground">{category}</p>
-            <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
-          </div>
-        ))}
-      </div>
+function DocumentsTab({ documents }: { documents: LoanDocument[] }) {
+    // Remove the const [docs] = useState(...) mock data line entirely.
 
-      {/* Uploaded Files */}
-      <Card className="shadow-card border-border/50">
-        <CardHeader>
-          <CardTitle className="text-lg">Uploaded Documents</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {uploadedDocs.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground">{doc.category}</p>
-                  </div>
-                </div>
-                <StatusBadge status={doc.status} />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    return (
+        <Card>
+            <CardHeader>
+                {/* ... header content ... */}
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        {/* ... header rows ... */}
+                    </TableHeader>
+                    <TableBody>
+                        {documents.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                    No documents uploaded yet.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            documents.map((doc) => (
+                                <TableRow key={doc.id}>
+                                    <TableCell className="font-medium flex items-center">
+                                        <FileText className="mr-2 h-4 w-4 text-blue-500" />
+                                        {doc.name}
+                                    </TableCell>
+                                    <TableCell>{doc.category}</TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                doc.status === "VERIFIED"
+                                                    ? "bg-green-50 text-green-700 border-green-200"
+                                                    : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                            }
+                                        >
+                                            {doc.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>{new Date(doc.uploadedAt).toLocaleDateString()}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
 }
 
 function LoansTab() {
@@ -534,6 +547,7 @@ export default function Dashboard() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [externalLoans, setExternalLoans] = useState<ExternalLoan[]>([]);
+    const [documents, setDocuments] = useState<LoanDocument[]>([]); // <--- Add this state
 
     const latestApp = applications.length > 0 ? applications[0] : undefined;
 
@@ -544,17 +558,19 @@ export default function Dashboard() {
                 if (currentUser) setUser(currentUser);
 
                 // Fetch API Data
-                const [statsData, appsData, notifData, loansData] = await Promise.all([
+                const [statsData, appsData, notifData, loansData, docsData] = await Promise.all([
                     getDashboardStats(),
                     getRecentApplications(),
                     getNotifications(),
-                    getExternalLoans()
+                    getExternalLoans(),
+                    getDocuments() // <--- Fetch docs
                 ]);
 
                 setStats(statsData.data);
                 setApplications(appsData.data);
                 setNotifications(notifData.data);
                 setExternalLoans(loansData.data);
+                setDocuments(docsData.data); // <--- Set docs
             } catch (error) {
                 console.error("Dashboard sync failed", error);
             } finally {
@@ -626,9 +642,9 @@ export default function Dashboard() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="documents">
-            <DocumentsTab />
-          </TabsContent>
+            <TabsContent value="documents">
+                <DocumentsTab documents={documents} />
+            </TabsContent>
 
             <TabsContent value="loans">
                 {/* Keep your existing Card Header */}

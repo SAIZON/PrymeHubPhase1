@@ -36,4 +36,10 @@ public class DashboardController {
     public ResponseEntity<List<ExternalLoanDto>> getExternalLoans(Principal principal) {
         return ResponseEntity.ok(dashboardService.getExternalLoans(principal.getName()));
     }
+
+    @GetMapping("/documents")
+    public ResponseEntity<List<LoanDocumentDto>> getDocuments(Principal principal) {
+        return ResponseEntity.ok(dashboardService.getUserDocuments(principal.getName()));
+    }
+
 }

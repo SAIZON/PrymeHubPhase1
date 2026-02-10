@@ -78,4 +78,20 @@ public class DashboardService {
                 ))
                 .collect(Collectors.toList());
     }
+
+    public List<LoanDocumentDto> getUserDocuments(String email) {
+        User user = getUser(email);
+        List<Application> applications = applicationRepository.findByUserId(user.getId());
+
+        return applications.stream()
+                .flatMap(app -> app.getDocuments().stream()) // Flatten list of lists
+                .map(doc -> new LoanDocumentDto(
+                        doc.getId(),
+                        doc.getFileName(),
+                        doc.getType().name(),
+                        doc.getStatus().name(),
+                        doc.getUploadedAt()
+                ))
+                .collect(Collectors.toList());
+    }
 }

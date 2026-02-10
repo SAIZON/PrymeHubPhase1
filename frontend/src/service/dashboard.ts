@@ -31,6 +31,14 @@ export interface ExternalLoan {
     emiAmount: number;
 }
 
+export interface LoanDocument {
+    id: string;
+    name: string;
+    category: string;
+    status: string;
+    uploadedAt: string;
+}
+
 export const getDashboardStats = async () => {
     return await api.get<DashboardStats>('/dashboard/stats');
 };
@@ -45,4 +53,8 @@ export const getNotifications = async () => {
 
 export const getExternalLoans = async () => {
     return await api.get<ExternalLoan[]>('/dashboard/external-loans');
+};
+
+export const getDocuments = async () => {
+    return await api.get<LoanDocument[]>('/dashboard/documents');
 };
