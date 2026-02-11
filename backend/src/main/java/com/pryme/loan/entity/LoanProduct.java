@@ -1,23 +1,33 @@
 package com.pryme.loan.entity;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Data;
 import java.math.BigDecimal;
-@Entity @Table(name = "loan_products")
+
+@Data
+@Entity
+@Table(name = "loan_products")
 public class LoanProduct {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne @JoinColumn(name = "bank_id")
+
+    @ManyToOne
+    @JoinColumn(name = "bank_id")
+    @JsonBackReference // <--- CRITICAL FIX FOR VISIBILITY
     private Bank bank;
-    private String type; // HOME, PERSONAL
-    private BigDecimal interestRate;
-    private BigDecimal processingFee;
+
+    private String type;          // e.g. "Personal Loan"
+    private String interestRate;  // e.g. "10.5%"
+    private String processingFee; // e.g. "1%"
+
+    private String maxAmount;     // e.g. "50 Lakhs"
+    private String tenure;        // e.g. "1-5 Years"
+
+    @Column(columnDefinition = "TEXT")
+    private String features;      // e.g. "Instant Approval"
+
     private BigDecimal minSalary;
     private Integer minCibil;
-    // Getters/Setters...
-    public Long getId() { return id; } public void setId(Long id) { this.id = id; }
-    public Bank getBank() { return bank; } public void setBank(Bank bank) { this.bank = bank; }
-    public String getType() { return type; } public void setType(String type) { this.type = type; }
-    public BigDecimal getInterestRate() { return interestRate; } public void setInterestRate(BigDecimal r) { this.interestRate = r; }
-    public BigDecimal getProcessingFee() { return processingFee; } public void setProcessingFee(BigDecimal f) { this.processingFee = f; }
-    public BigDecimal getMinSalary() { return minSalary; } public void setMinSalary(BigDecimal s) { this.minSalary = s; }
-    public Integer getMinCibil() { return minCibil; } public void setMinCibil(Integer c) { this.minCibil = c; }
 }

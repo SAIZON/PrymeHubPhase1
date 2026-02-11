@@ -1,260 +1,256 @@
-import { useState } from "react";
-import { ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { ExternalLink, CheckCircle, AlertCircle, Loader2, Filter } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Ensure this component exists
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
+import { getAllPublicLoans, PublicLoanProduct } from "@/service/public-loan";
+import { getCurrentUser } from "@/service/auth";
+import { AuthModal } from "@/components/auth/AuthModal";
 
-const loanOffers = [
-  {
-    id: 1,
-    bank: "HDFC Bank",
-    logo: "HDFC",
-    maxAmount: 10000000,
-    roi: 8.5,
-    processingFee: "0.5%",
-    emi: 77823,
-    approval: "high",
-  },
-  {
-    id: 2,
-    bank: "SBI",
-    logo: "SBI",
-    maxAmount: 15000000,
-    roi: 8.25,
-    processingFee: "0.35%",
-    emi: 76234,
-    approval: "high",
-  },
-  {
-    id: 3,
-    bank: "ICICI Bank",
-    logo: "ICICI",
-    maxAmount: 12000000,
-    roi: 8.75,
-    processingFee: "0.5%",
-    emi: 79445,
-    approval: "medium",
-  },
-  {
-    id: 4,
-    bank: "Axis Bank",
-    logo: "AXIS",
-    maxAmount: 8000000,
-    roi: 9.0,
-    processingFee: "1%",
-    emi: 81087,
-    approval: "high",
-  },
-  {
-    id: 5,
-    bank: "Kotak Mahindra",
-    logo: "KOTAK",
-    maxAmount: 10000000,
-    roi: 8.65,
-    processingFee: "0.5%",
-    emi: 78654,
-    approval: "medium",
-  },
-];
+// Helper for currency formatting
+const formatCurrency = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined) return "N/A";
+    if (typeof value === 'string') return value;
 
-const formatCurrency = (value: number) => {
-  if (value >= 10000000) {
-    return `₹${(value / 10000000).toFixed(1)} Cr`;
-  } else if (value >= 100000) {
-    return `₹${(value / 100000).toFixed(0)} L`;
-  }
-  return `₹${value.toLocaleString("en-IN")}`;
+    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)} Cr`;
+    if (value >= 100000) return `₹${(value / 100000).toFixed(0)} L`;
+    return `₹${value.toLocaleString("en-IN")}`;
 };
 
-function ApprovalBadge({ level }: { level: string }) {
-  if (level === "high") {
-    return (
-      <Badge className="bg-success/10 text-success border-success/20 hover:bg-success/10">
-        <CheckCircle className="h-3 w-3 mr-1" />
-        High Chance
-      </Badge>
+
+
+// --- APPROVAL LOGIC EXPLAINED ---
+// Currently, this logic checks the 'features' text.
+// If the bank added "Instant Approval" or "Pre-approved" to the features list,
+// we show "High Chance". Otherwise "Medium".
+// In a future update, we will compare User CIBIL vs Loan minCibil.
+
+function ApprovalBadge({ features }: { features: string[] }) {
+    const isHigh = features.some(f =>
+        f.toLowerCase().includes('instant') ||
+        f.toLowerCase().includes('approval') ||
+        f.toLowerCase().includes('paperless')
     );
-  }
-  return (
-    <Badge className="bg-warning/10 text-warning border-warning/20 hover:bg-warning/10">
-      <AlertCircle className="h-3 w-3 mr-1" />
-      Medium Chance
-    </Badge>
-  );
+
+    if (isHigh) {
+        return (
+            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                High Chance
+            </Badge>
+        );
+    }
+    return (
+        <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Medium Chance
+        </Badge>
+    );
 }
 
 function CIBILAdvisory() {
-  return (
-    <Card className="mb-8 border-accent/30 bg-accent/5">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl font-bold text-accent-foreground">720</span>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground mb-1">
-              Your CIBIL Score: Good
-            </h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              You're eligible for most loans. Here's how to improve your score:
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                Pay off credit card debt to reach 750+ for better rates
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                Maintain credit utilization below 30%
-              </li>
-              <li className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-warning" />
-                Avoid multiple loan inquiries in short period
-              </li>
-            </ul>
-          </div>
-          <Button variant="outline" size="sm" className="self-start">
-            Get Full Report
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    return (
+        <Card className="mb-8 border-blue-200 bg-blue-50">
+            <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 border-2 border-blue-200">
+                        <span className="text-2xl font-bold text-blue-700">720</span>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-foreground mb-1">Your Estimated CIBIL Score: Good</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                            Based on this score, we have calculated your approval chances below.
+                        </p>
+                    </div>
+                    <Button variant="outline" size="sm" className="self-start">Get Full Report</Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
 }
 
 export default function Compare() {
-  return (
-    <div className="min-h-screen bg-background py-8 md:py-12">
-      <div className="container">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            Compare Loan Offers
-          </h1>
-          <p className="text-muted-foreground">
-            Based on your profile, here are the best offers from top banks
-          </p>
-        </div>
+    const navigate = useNavigate();
+    const [loans, setLoans] = useState<PublicLoanProduct[]>([]);
+    const [loading, setLoading] = useState(true);
 
-        {/* CIBIL Advisory Section */}
-        <CIBILAdvisory />
+    // --- FILTER STATE ---
+    const [selectedType, setSelectedType] = useState("All");
 
-        {/* Desktop Table */}
-        <div className="hidden md:block">
-          <Card className="shadow-card border-border/50 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Bank</TableHead>
-                  <TableHead className="font-semibold">Max Loan Amount</TableHead>
-                  <TableHead className="font-semibold">Interest Rate</TableHead>
-                  <TableHead className="font-semibold">Processing Fee</TableHead>
-                  <TableHead className="font-semibold">Est. EMI</TableHead>
-                  <TableHead className="font-semibold">Approval</TableHead>
-                  <TableHead className="font-semibold text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loanOffers.map((offer) => (
-                  <TableRow key={offer.id} className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">{offer.logo}</span>
-                        </div>
-                        <span className="font-medium">{offer.bank}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(offer.maxAmount)}
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-semibold text-primary">{offer.roi}%</span>
-                      <span className="text-muted-foreground text-sm"> p.a.</span>
-                    </TableCell>
-                    <TableCell>{offer.processingFee}</TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(offer.emi)}/mo
-                    </TableCell>
-                    <TableCell>
-                      <ApprovalBadge level={offer.approval} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          Visit Bank
-                        </Button>
-                        <Button variant="default" size="sm" asChild>
-                          <Link to="/signup">Apply with PRYME</Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
+    useEffect(() => {
+        const fetchLoans = async () => {
+            try {
+                const response = await getAllPublicLoans();
+                setLoans(response.data);
+            } catch (error) {
+                console.error("Failed to load loans", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLoans();
+    }, []);
 
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-4">
-          {loanOffers.map((offer) => (
-            <Card key={offer.id} className="shadow-card border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">{offer.logo}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{offer.bank}</h3>
-                      <ApprovalBadge level={offer.approval} />
-                    </div>
-                  </div>
+    const handleApply = (offer: PublicLoanProduct) => {
+        if (getCurrentUser()) {
+            // Pass data to dashboard
+            navigate("/dashboard", { state: { prefillProduct: offer } });
+        }
+        // AuthModal triggers automatically for logged out users
+    };
+
+    // --- FILTER LOGIC ---
+    const loanTypes = ["All", ...Array.from(new Set(loans.map(l => l.loanType)))];
+    const filteredLoans = selectedType === "All"
+        ? loans
+        : loans.filter(l => l.loanType === selectedType);
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    }
+
+    return (
+        <div className="min-h-screen bg-background py-8 md:py-12">
+            <div className="container">
+                <div className="mb-8 text-center md:text-left">
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Compare Loan Offers</h1>
+                    <p className="text-muted-foreground">Based on your profile, here are the best offers from top banks</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Max Amount</p>
-                    <p className="font-semibold">{formatCurrency(offer.maxAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Interest Rate</p>
-                    <p className="font-semibold text-primary">{offer.roi}% p.a.</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Processing Fee</p>
-                    <p className="font-semibold">{offer.processingFee}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Est. EMI</p>
-                    <p className="font-semibold">{formatCurrency(offer.emi)}/mo</p>
-                  </div>
+                <CIBILAdvisory />
+
+                {/* --- FILTERS --- */}
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 className="text-xl font-semibold">Available Offers ({filteredLoans.length})</h2>
+
+                    <Tabs defaultValue="All" onValueChange={setSelectedType} className="w-full sm:w-auto">
+                        <TabsList>
+                            {loanTypes.map(type => (
+                                <TabsTrigger key={type} value={type}>{type}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
                 </div>
 
-                <div className="flex gap-3">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Visit Bank
-                  </Button>
-                  <Button variant="default" size="sm" className="flex-1" asChild>
-                    <Link to="/signup">Apply with PRYME</Link>
-                  </Button>
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                    <Card className="shadow-sm border overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-muted/50">
+                                    <TableHead className="font-semibold">Bank</TableHead>
+                                    <TableHead className="font-semibold">Max Loan Amount</TableHead>
+                                    <TableHead className="font-semibold">Interest Rate</TableHead>
+                                    <TableHead className="font-semibold">Processing Fee</TableHead>
+                                    <TableHead className="font-semibold">Tenure</TableHead>
+                                    <TableHead className="font-semibold">Approval Chance</TableHead>
+                                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredLoans.length === 0 ? (
+                                    <TableRow><TableCell colSpan={7} className="text-center py-8">No offers found for {selectedType}.</TableCell></TableRow>
+                                ) : (
+                                    filteredLoans.map((offer) => (
+                                        <TableRow key={offer.id} className="hover:bg-muted/30">
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    {offer.bankLogoUrl ? (
+                                                        <img src={offer.bankLogoUrl} alt={offer.bankName} className="w-10 h-10 object-contain" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
+                                                            {offer.bankName.substring(0,3)}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <span className="font-medium block">{offer.bankName}</span>
+                                                        <span className="text-xs text-muted-foreground">{offer.loanType}</span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="font-medium">{formatCurrency(offer.maxLoanAmount)}</TableCell>
+                                            <TableCell>
+                                                <span className="font-semibold text-primary">{offer.interestRate}</span>
+                                                <span className="text-muted-foreground text-sm"> p.a.</span>
+                                            </TableCell>
+                                            <TableCell>{offer.processingFee}</TableCell>
+                                            <TableCell className="font-medium">{offer.tenure}</TableCell>
+                                            <TableCell><ApprovalBadge features={offer.features} /></TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2 justify-end">
+                                                    {getCurrentUser() ? (
+                                                        <Button variant="default" size="sm" onClick={() => handleApply(offer)}>
+                                                            Apply with PRYME
+                                                        </Button>
+                                                    ) : (
+                                                        <div className="scale-90"><AuthModal /></div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </Card>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                {/* Mobile Cards (Also filtered) */}
+                <div className="md:hidden space-y-4">
+                    {filteredLoans.map((offer) => (
+                        <Card key={offer.id} className="shadow-sm border">
+                            <CardContent className="p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        {offer.bankLogoUrl && <img src={offer.bankLogoUrl} className="w-12 h-12 object-contain" />}
+                                        <div>
+                                            <h3 className="font-semibold text-foreground">{offer.bankName}</h3>
+                                            <ApprovalBadge features={offer.features} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Max Amount</p>
+                                        <p className="font-semibold">{formatCurrency(offer.maxLoanAmount)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Interest Rate</p>
+                                        <p className="font-semibold text-primary">{offer.interestRate}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Processing Fee</p>
+                                        <p className="font-semibold">{offer.processingFee}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Tenure</p>
+                                        <p className="font-semibold">{offer.tenure}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    {getCurrentUser() ? (
+                                        <Button className="w-full" onClick={() => navigate("/dashboard")}>Apply with PRYME</Button>
+                                    ) : (
+                                        <div className="w-full"><AuthModal /></div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

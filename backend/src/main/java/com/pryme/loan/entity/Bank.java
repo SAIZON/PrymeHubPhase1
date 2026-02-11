@@ -1,21 +1,34 @@
 package com.pryme.loan.entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.Data;
 import java.math.BigDecimal;
-@Entity @Table(name = "banks")
+import java.util.List;
+
+@Data
+@Entity
+@Table(name = "banks")
 public class Bank {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String name;
+
     private String logoUrl;
+
     private boolean isActive = true;
-    @Column(precision = 5, scale = 2) // Stores rates like 10.50
+
+    @Column(precision = 5, scale = 2)
     private BigDecimal baseInterestRate;
-    // Getters/Setters...
-    public Long getId() { return id; } public void setId(Long id) { this.id = id; }
-    public String getName() { return name; } public void setName(String name) { this.name = name; }
-    public String getLogoUrl() { return logoUrl; } public void setLogoUrl(String url) { this.logoUrl = url; }
-    public boolean isActive() { return isActive; } public void setActive(boolean active) { isActive = active; }
-    public BigDecimal getBaseInterestRate() { return baseInterestRate; }
-    public void setBaseInterestRate(BigDecimal baseInterestRate) { this.baseInterestRate = baseInterestRate; }
+
+    @OneToMany(mappedBy = "bank", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // <--- CRITICAL FIX FOR VISIBILITY
+    private List<LoanProduct> products;
+
+    // Manual getters/setters if Lombok fails (optional if @Data works)
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isActive() { return isActive; }
 }

@@ -31,6 +31,9 @@ import {
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, User as AuthUser } from "@/service/auth"; // Renamed to avoid conflict with Lucide icon
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation
+import { NewApplicationModal } from "@/components/dashboard/NewApplicationModal";
+import { PrefillData } from "@/components/dashboard/NewApplicationModal";
 
 import {
     getDashboardStats,
@@ -367,7 +370,7 @@ function NotificationsTab() {
   const [notifications, setNotifications] = useState(mockNotifications);
 
   const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
+    setNotifications(notifications.map(n =>
       n.id === id ? { ...n, read: true } : n
     ));
   };
@@ -549,34 +552,51 @@ export default function Dashboard() {
     const [externalLoans, setExternalLoans] = useState<ExternalLoan[]>([]);
     const [documents, setDocuments] = useState<LoanDocument[]>([]); // <--- Add this state
 
+    const location = useLocation();
+    const navigate = useNavigate();
+    // Fix "any" by using the type
+    const [prefillProduct, setPrefillProduct] = useState<PrefillData | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const latestApp = applications.length > 0 ? applications[0] : undefined;
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const currentUser = getCurrentUser();
-                if (currentUser) setUser(currentUser);
+        // Check if we came from "Compare" page with data
+        if (location.state && location.state.prefillProduct) {
+            setPrefillProduct(location.state.prefillProduct);
+            setIsModalOpen(true);
+            // Clear state so it doesn't reopen on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
-                // Fetch API Data
-                const [statsData, appsData, notifData, loansData, docsData] = await Promise.all([
-                    getDashboardStats(),
-                    getRecentApplications(),
-                    getNotifications(),
-                    getExternalLoans(),
-                    getDocuments() // <--- Fetch docs
-                ]);
+    const loadData = async () => {
+        try {
+            const currentUser = getCurrentUser();
+            if (currentUser) setUser(currentUser);
 
-                setStats(statsData.data);
-                setApplications(appsData.data);
-                setNotifications(notifData.data);
-                setExternalLoans(loansData.data);
-                setDocuments(docsData.data); // <--- Set docs
-            } catch (error) {
-                console.error("Dashboard sync failed", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            const [statsData, appsData, notifData, loansData, docsData] = await Promise.all([
+                getDashboardStats(),
+                getRecentApplications(),
+                getNotifications(),
+                getExternalLoans(),
+                getDocuments()
+            ]);
+
+            setStats(statsData.data);
+            setApplications(appsData.data);
+            setNotifications(notifData.data);
+            setExternalLoans(loansData.data);
+            setDocuments(docsData.data);
+        } catch (error) {
+            console.error("Dashboard sync failed", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 3. UseEffect calls it
+    useEffect(() => {
         loadData();
     }, []);
 
@@ -612,11 +632,25 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="container py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">My Dashboard</h1>
-          <p className="text-muted-foreground">Track your loan application status and manage documents</p>
-        </div>
+        <div className="container py-8">
+            {/* START REPLACEMENT */}
+            <div className="flex justify-between items-end mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">My Dashboard</h1>
+                    <p className="text-muted-foreground">Track your loan application status and manage documents</p>
+                </div>
+
+                <div className="flex gap-2">
+                    {/* 1. Controlled Modal (Auto-opens if coming from Compare Page) */}
+                    
+
+                    {/* 2. Manual Trigger (Only show if auto-modal is closed) */}
+                    {!isModalOpen && <NewApplicationModal onSuccess={loadData} />}
+
+                    <Button variant="outline" onClick={loadData}>Refresh</Button>
+                </div>
+            </div>
+            {/* END REPLACEMENT */}
 
         {/* Application Timeline */}
         <ApplicationTimeline />

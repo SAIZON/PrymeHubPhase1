@@ -1,12 +1,13 @@
 package com.pryme.loan.controller;
 
 import com.pryme.loan.dto.*;
+import com.pryme.loan.entity.ExternalLoan;
+import com.pryme.loan.entity.Notification;
 import com.pryme.loan.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.security.Principal;
 import java.util.List;
 
@@ -18,22 +19,30 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/stats")
-    public ResponseEntity<DashboardStatsDto> getStats(Principal principal) {
+    public ResponseEntity<DashboardStats> getStats(Principal principal) {
         return ResponseEntity.ok(dashboardService.getStats(principal.getName()));
     }
 
     @GetMapping("/applications")
-    public ResponseEntity<List<ApplicationDto>> getApplications(Principal principal) {
-        return ResponseEntity.ok(dashboardService.getRecentApplications(principal.getName()));
+    public ResponseEntity<List<ApplicationDto>> getRecentApplications(Principal principal) {
+        return ResponseEntity.ok(dashboardService.getUserApplications(principal.getName()));
+    }
+
+    @PostMapping("/apply")
+    public ResponseEntity<String> submitApplication(@RequestBody ApplicationRequest request, Principal principal) {
+        dashboardService.submitApplication(principal.getName(), request);
+        return ResponseEntity.ok("Application submitted successfully");
     }
 
     @GetMapping("/notifications")
-    public ResponseEntity<List<NotificationDto>> getNotifications(Principal principal) {
+    public ResponseEntity<List<Notification>> getNotifications(Principal principal) {
+        // Matches the method name in Service now
         return ResponseEntity.ok(dashboardService.getNotifications(principal.getName()));
     }
 
     @GetMapping("/external-loans")
-    public ResponseEntity<List<ExternalLoanDto>> getExternalLoans(Principal principal) {
+    public ResponseEntity<List<ExternalLoan>> getExternalLoans(Principal principal) {
+        // Matches the method name in Service now
         return ResponseEntity.ok(dashboardService.getExternalLoans(principal.getName()));
     }
 
@@ -41,5 +50,4 @@ public class DashboardController {
     public ResponseEntity<List<LoanDocumentDto>> getDocuments(Principal principal) {
         return ResponseEntity.ok(dashboardService.getUserDocuments(principal.getName()));
     }
-
 }

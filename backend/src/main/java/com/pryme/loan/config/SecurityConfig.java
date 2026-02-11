@@ -34,13 +34,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Public Endpoints
                         .requestMatchers(
                                 "/api/v1/auth/**",
-                                "/api/v1/public/**",
+                                "/api/v1/public/**", // Ensure public loans are accessible
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+
+                        // 2. Admin Endpoints (Explicitly require ADMIN role)
+                        .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
+
+                        // 3. Everything else requires login
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -52,7 +58,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow frontend origins (Vite usually runs on 5173, React legacy on 3000)
+        // Allow typical frontend ports
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:8081"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

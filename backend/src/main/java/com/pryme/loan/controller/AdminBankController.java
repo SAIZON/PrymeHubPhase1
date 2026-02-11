@@ -1,7 +1,9 @@
 package com.pryme.loan.controller;
 
 import com.pryme.loan.dto.BankDto;
+import com.pryme.loan.dto.LoanProductDto;
 import com.pryme.loan.entity.Bank;
+import com.pryme.loan.entity.LoanProduct;
 import com.pryme.loan.service.AdminBankService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/admin") // Generalized path
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
+@RequestMapping("/api/v1/admin")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081", "http://localhost:5173"})
 public class AdminBankController {
 
     private final AdminBankService adminBankService;
@@ -20,7 +22,7 @@ public class AdminBankController {
         this.adminBankService = adminBankService;
     }
 
-    // --- BANK MANAGEMENT ---
+    // --- BANK ENDPOINTS ---
 
     @PostMapping("/banks")
     public ResponseEntity<Bank> createBank(@Valid @RequestBody BankDto dto) {
@@ -32,27 +34,46 @@ public class AdminBankController {
         return ResponseEntity.ok(adminBankService.getAllBanks());
     }
 
+    @PutMapping("/banks/{id}")
+    public ResponseEntity<Bank> updateBank(@PathVariable Long id, @Valid @RequestBody BankDto dto) {
+        return ResponseEntity.ok(adminBankService.updateBank(id, dto));
+    }
+
+    @DeleteMapping("/banks/{id}")
+    public ResponseEntity<String> deleteBank(@PathVariable Long id) {
+        adminBankService.deleteBank(id);
+        return ResponseEntity.ok("Bank deleted successfully");
+    }
+
     @PatchMapping("/banks/{id}/toggle")
     public ResponseEntity<Bank> toggleVisibility(@PathVariable Long id) {
         return ResponseEntity.ok(adminBankService.toggleVisibility(id));
     }
 
-    @PutMapping("/banks/{id}")
-    public ResponseEntity<Bank> updateBank(@PathVariable Long id, @Valid @RequestBody BankDto dto) {
-        return ResponseEntity.ok(adminBankService.updateBank(id, dto));
-    }
-    // --- PRODUCT MANAGEMENT (The Fix) ---
+    // --- PRODUCT ENDPOINTS ---
 
-    // Changed path from /banks/{id}/rate to /products/{id}/rate
+    @PostMapping("/banks/{bankId}/products")
+    public ResponseEntity<LoanProduct> addProduct(@PathVariable Long bankId, @RequestBody LoanProductDto dto) {
+        return ResponseEntity.ok(adminBankService.addProductToBank(bankId, dto));
+    }
+
+    @PutMapping("/products/{id}")
+    public ResponseEntity<LoanProduct> updateProduct(@PathVariable Long id, @RequestBody LoanProductDto dto) {
+        return ResponseEntity.ok(adminBankService.updateProduct(id, dto));
+    }
+
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+        adminBankService.deleteProduct(id);
+        return ResponseEntity.ok("Product deleted successfully");
+    }
+
     @PatchMapping("/products/{productId}/rate")
     public ResponseEntity<String> updateProductRate(@PathVariable Long productId, @Valid @RequestBody BankDto dto) {
         if (dto.baseInterestRate() == null) {
             return ResponseEntity.badRequest().body("baseInterestRate is required");
         }
-
-        // Use the new precise service method
         adminBankService.updateLoanProductInterestRate(productId, dto.baseInterestRate());
-
         return ResponseEntity.ok("Interest rate updated for Product ID: " + productId);
     }
 }
