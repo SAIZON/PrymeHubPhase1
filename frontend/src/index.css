@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* PRYME Green & Gold Palette */
+    --background: 0 0% 99%;
+    --foreground: 152 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 152 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 152 20% 12%;
+
+    /* Primary: PRYME Green #2aac64 */
+    --primary: 147 60% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Light Green */
+    --secondary: 147 40% 95%;
+    --secondary-foreground: 147 60% 32%;
+
+    --muted: 150 15% 96%;
+    --muted-foreground: 150 10% 45%;
+
+    /* Accent: Gold #ffd600 */
+    --accent: 50 100% 50%;
+    --accent-foreground: 50 100% 10%;
+
+    /* Status Colors */
+    --success: 147 60% 42%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 50 100% 50%;
+    --warning-foreground: 50 100% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 15% 90%;
+    --input: 150 15% 90%;
+    --ring: 147 60% 42%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(147, 60%, 48%) 0%, hsl(147, 60%, 36%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(147, 30%, 97%) 0%, hsl(0, 0%, 100%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(150, 15%, 99%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(50, 100%, 55%) 0%, hsl(45, 100%, 45%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(150 15% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(150 15% 15% / 0.1), 0 2px 4px -2px hsl(150 15% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(150 15% 15% / 0.1), 0 4px 6px -4px hsl(150 15% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(150 15% 15% / 0.1), 0 8px 10px -6px hsl(150 15% 15% / 0.1);
+    --shadow-card: 0 1px 3px hsl(150 15% 15% / 0.08), 0 1px 2px -1px hsl(150 15% 15% / 0.08);
+    --shadow-card-hover: 0 10px 40px -10px hsl(147 60% 42% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 152 25% 15%;
+    --sidebar-foreground: 150 15% 96%;
+    --sidebar-primary: 147 60% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 25% 22%;
+    --sidebar-accent-foreground: 150 15% 96%;
+    --sidebar-border: 152 25% 25%;
+    --sidebar-ring: 147 60% 50%;
+  }
+
+  .dark {
+    --background: 152 25% 8%;
+    --foreground: 150 15% 96%;
+
+    --card: 152 25% 12%;
+    --card-foreground: 150 15% 96%;
+
+    --popover: 152 25% 12%;
+    --popover-foreground: 150 15% 96%;
+
+    --primary: 147 60% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 152 25% 18%;
+    --secondary-foreground: 150 15% 96%;
+
+    --muted: 152 25% 18%;
+    --muted-foreground: 150 10% 65%;
+
+    --accent: 50 100% 50%;
+    --accent-foreground: 50 100% 10%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 152 25% 20%;
+    --input: 152 25% 20%;
+    --ring: 147 60% 50%;
+
+    --sidebar-background: 152 25% 10%;
+    --sidebar-foreground: 150 15% 96%;
+    --sidebar-primary: 147 60% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 25% 16%;
+    --sidebar-accent-foreground: 150 15% 96%;
+    --sidebar-border: 152 25% 18%;
+    --sidebar-ring: 147 60% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .animate-ribbon {
+    animation: ribbon-slide 20s linear infinite;
+  }
+
+  @keyframes ribbon-slide {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
