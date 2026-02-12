@@ -29,7 +29,7 @@ import {
 // Ensure you have created this service file as discussed
 import { leadService, Lead } from "@/service/lead";
 
-export default function Applications() {
+export default function Leads() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -85,7 +85,7 @@ export default function Applications() {
             <div className="mb-8 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Leads & Inquiries</h1>
-                    <p className="text-muted-foreground">Manage incoming loan requests</p>
+                    <p className="text-muted-foreground">Contact Us submissions</p>
                 </div>
                 <Button onClick={loadLeads} variant="outline" size="sm">
                     <RefreshCw className="h-4 w-4 mr-2" />

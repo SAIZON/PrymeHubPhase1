@@ -17,7 +17,8 @@ import LoanProduct from "./pages/products/LoanProduct";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageBanks from "./pages/admin/ManageBanks";
-import Applications from "./pages/admin/Applications";
+import Leads from "./pages/admin/Leads";
+import UserApplications from "./pages/admin/UserApplications";
 import Offers from "./pages/admin/Offers";
 import ManageBlogs from "./pages/admin/ManageBlogs";
 import NotFound from "./pages/NotFound";
@@ -82,7 +83,8 @@ const App = () => (
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="banks" element={<ManageBanks />} />
-            <Route path="applications" element={<Applications />} />
+            <Route path="leads" element={<Leads />} />
+              <Route path="user-applications" element={<UserApplications />} />
             <Route path="offers" element={<Offers />} />
               <Route path="blogs" element={<ManageBlogs />} />
           </Route>

@@ -21,7 +21,7 @@ import {
 
 const stats = [
   {
-    title: "Total Applications",
+    title: "Total Leads",
     value: "1,284",
     change: "+12.5%",
     trend: "up",

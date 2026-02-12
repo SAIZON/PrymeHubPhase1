@@ -71,7 +71,8 @@ export default function AdminLayout() {
 
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-        { icon: FileText, label: "Applications", path: "/admin/applications" },
+        { icon: FileText, label: "Leads", path: "/admin/leads" },
+        { icon: FileText, label: "User Apps", path: "/admin/user-applications" },
         { icon: Building2, label: "Banks", path: "/admin/banks" },
         { icon: CreditCard, label: "Loan Offers", path: "/admin/offers" },
         { icon: FileText, label: "Blog Posts", path: "/admin/blogs" }, // Changed from Users to FileText for blogs
