@@ -36,6 +36,7 @@ export default function Blog() {
     };
 
     // Logic: First post is "Featured", rest are grid items
+    // Note: You might want to filter specific "isPinned" posts for featured in the future
     const featuredPost = posts.length > 0 ? posts[0] : null;
     const gridPosts = posts.length > 1 ? posts.slice(1) : [];
 
@@ -78,31 +79,50 @@ export default function Blog() {
                     <div className="container">
                         <Card className="max-w-5xl mx-auto shadow-card border-border/50 overflow-hidden">
                             <div className="grid md:grid-cols-2">
-                                <div className="h-[200px] md:h-auto bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                                    <TrendingUp className="h-20 w-20 text-primary-foreground/30" />
+                                {/* Featured Image Section */}
+                                <div className="h-[250px] md:h-auto relative overflow-hidden bg-muted flex items-center justify-center">
+                                    {featuredPost.imageUrl ? (
+                                        <img
+                                            src={featuredPost.imageUrl}
+                                            alt={featuredPost.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="bg-gradient-to-br from-primary to-primary/70 w-full h-full flex items-center justify-center">
+                                            <TrendingUp className="h-20 w-20 text-primary-foreground/30" />
+                                        </div>
+                                    )}
                                 </div>
+
                                 <CardContent className="p-6 md:p-8 flex flex-col justify-center">
-                                    <Badge className="w-fit mb-3 bg-accent text-accent-foreground">Featured</Badge>
-                                    <h2 className="text-2xl font-bold text-foreground mb-3">
+                                    <div className="flex gap-2 mb-3">
+                                        <Badge className="w-fit bg-accent text-accent-foreground">Featured</Badge>
+                                        <Badge variant="outline">{featuredPost.category || "General"}</Badge>
+                                    </div>
+
+                                    <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
                                         {featuredPost.title}
                                     </h2>
-                                    <p className="text-muted-foreground mb-4 line-clamp-3">
+
+                                    <p className="text-muted-foreground mb-6 line-clamp-3 text-lg">
                                         {featuredPost.excerpt || featuredPost.content.substring(0, 150) + "..."}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                        {featuredPost.author || "Admin"}
-                    </span>
+
+                                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
                                         <span className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
+                                            <User className="h-4 w-4" />
+                                            {featuredPost.author || "Admin"}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="h-4 w-4" />
                                             {formatDate(featuredPost.createdAt)}
-                    </span>
+                                        </span>
                                         <span className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
+                                            <Clock className="h-4 w-4" />
                                             {blogService.calculateReadTime(featuredPost.content)}
-                    </span>
+                                        </span>
                                     </div>
+
                                     <Button className="w-fit" asChild>
                                         <Link to={`/blog/${featuredPost.slug}`}>
                                             Read Article <ArrowRight className="ml-2 h-4 w-4" />
@@ -144,26 +164,44 @@ export default function Blog() {
                     ) : (
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                             {filteredGridPosts.map((post) => (
-                                <Card key={post.id} className="shadow-card border-border/50 hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1">
-                                    <CardContent className="p-6">
-                                        <Badge variant="secondary" className="mb-3">
+                                <Card key={post.id} className="flex flex-col shadow-card border-border/50 hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full">
+                                    {/* Grid Item Image */}
+                                    {post.imageUrl && (
+                                        <div className="h-48 overflow-hidden border-b border-border/50">
+                                            <Link to={`/blog/${post.slug}`}>
+                                                <img
+                                                    src={post.imageUrl}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                                />
+                                            </Link>
+                                        </div>
+                                    )}
+
+                                    <CardContent className="p-6 flex-1 flex flex-col">
+                                        <Badge variant="secondary" className="mb-3 w-fit">
                                             {post.category || "General"}
                                         </Badge>
-                                        <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
-                                            {post.title}
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+
+                                        <Link to={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
+                                            <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
+                                                {post.title}
+                                            </h3>
+                                        </Link>
+
+                                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
                                             {post.excerpt || post.content.substring(0, 100) + "..."}
                                         </p>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                          {post.author || "Admin"}
-                      </span>
+
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-4 border-t border-border/50">
                                             <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                                                <User className="h-3 w-3" />
+                                                {post.author || "Admin"}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
                                                 {blogService.calculateReadTime(post.content)}
-                      </span>
+                                            </span>
                                         </div>
                                     </CardContent>
                                 </Card>

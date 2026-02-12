@@ -21,6 +21,7 @@ import Applications from "./pages/admin/Applications";
 import Offers from "./pages/admin/Offers";
 import ManageBlogs from "./pages/admin/ManageBlogs";
 import NotFound from "./pages/NotFound";
+import BlogPostPage from "./pages/BlogPostPage";
 
 // New Standard Pages
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/partners" element={<Partners />} />
             <Route path="/eligibility" element={<EligibilityCheck />} />
             <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} /> {/* Add this line */}
             <Route path="/services" element={<Services />} />
             <Route path="/offers" element={<PublicOffers />} />
           </Route>

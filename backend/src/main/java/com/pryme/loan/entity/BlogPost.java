@@ -27,6 +27,15 @@ public class BlogPost {
 
     private String author;
 
+    private String category; // e.g., "Home Loans", "Personal Finance"
+
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl; // URL to an image
+
+    @Column(columnDefinition = "TEXT")
+    private String excerpt; // Short summary
+    // ------------------
+
     private boolean isPinned = false; // For "Featured" blogs
 
     @CreationTimestamp

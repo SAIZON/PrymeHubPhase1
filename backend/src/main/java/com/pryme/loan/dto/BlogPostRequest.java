@@ -8,4 +8,9 @@ public class BlogPostRequest {
     private String content;
     private String author;
     private boolean isPinned;
+
+    // --- NEW FIELDS ---
+    private String category;
+    private String imageUrl;
+    private String excerpt;
 }

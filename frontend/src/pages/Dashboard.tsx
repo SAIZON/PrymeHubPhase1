@@ -642,7 +642,7 @@ export default function Dashboard() {
 
                 <div className="flex gap-2">
                     {/* 1. Controlled Modal (Auto-opens if coming from Compare Page) */}
-                    
+
 
                     {/* 2. Manual Trigger (Only show if auto-modal is closed) */}
                     {!isModalOpen && <NewApplicationModal onSuccess={loadData} />}

@@ -35,6 +35,13 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { blogService, BlogPost } from "@/service/blog";
 
 export default function ManageBlogs() {
@@ -45,12 +52,25 @@ export default function ManageBlogs() {
     const [isOpen, setIsOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
+    // Categories List
+    const categories = [
+        "Home Loans",
+        "Personal Loans",
+        "Business Loans",
+        "Credit Score",
+        "Personal Finance",
+        "General"
+    ];
+
     // Form State
     const [formData, setFormData] = useState({
         title: "",
         author: "",
         content: "",
         isPinned: false,
+        category: "General",
+        imageUrl: "",
+        excerpt: ""
     });
 
     useEffect(() => {
@@ -63,6 +83,11 @@ export default function ManageBlogs() {
             setPosts(data);
         } catch (error) {
             console.error("Failed to load posts");
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load blog posts",
+            });
         } finally {
             setIsLoading(false);
         }
@@ -70,7 +95,15 @@ export default function ManageBlogs() {
 
     const openAddModal = () => {
         setEditingPost(null);
-        setFormData({ title: "", author: "", content: "", isPinned: false });
+        setFormData({
+            title: "",
+            author: "",
+            content: "",
+            isPinned: false,
+            category: "General",
+            imageUrl: "",
+            excerpt: ""
+        });
         setIsOpen(true);
     };
 
@@ -81,6 +114,9 @@ export default function ManageBlogs() {
             author: post.author,
             content: post.content,
             isPinned: post.isPinned,
+            category: post.category || "General",
+            imageUrl: post.imageUrl || "",
+            excerpt: post.excerpt || ""
         });
         setIsOpen(true);
     };
@@ -134,7 +170,7 @@ export default function ManageBlogs() {
                             Write New Post
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl">
+                    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingPost ? "Edit Post" : "New Blog Post"}</DialogTitle>
                             <DialogDescription>
@@ -142,6 +178,7 @@ export default function ManageBlogs() {
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                            {/* Row 1: Title and Category */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="title">Title</Label>
@@ -154,6 +191,26 @@ export default function ManageBlogs() {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label>Category</Label>
+                                    <Select
+                                        value={formData.category}
+                                        onValueChange={(value) => setFormData({...formData, category: value})}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map(cat => (
+                                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            {/* Row 2: Author and Image URL */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
                                     <Label htmlFor="author">Author</Label>
                                     <Input
                                         id="author"
@@ -163,8 +220,30 @@ export default function ManageBlogs() {
                                         required
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+                                    <Input
+                                        id="imageUrl"
+                                        value={formData.imageUrl}
+                                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                </div>
                             </div>
 
+                            {/* Row 3: Excerpt */}
+                            <div className="space-y-2">
+                                <Label htmlFor="excerpt">Excerpt (Short Summary)</Label>
+                                <Textarea
+                                    id="excerpt"
+                                    className="h-20"
+                                    value={formData.excerpt}
+                                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                                    placeholder="Brief description for the card view..."
+                                />
+                            </div>
+
+                            {/* Row 4: Main Content */}
                             <div className="space-y-2">
                                 <Label htmlFor="content">Content (Markdown/HTML)</Label>
                                 <Textarea
@@ -177,6 +256,7 @@ export default function ManageBlogs() {
                                 />
                             </div>
 
+                            {/* Row 5: Pinned Switch */}
                             <div className="flex items-center space-x-2 pt-2">
                                 <Switch
                                     id="pinned"
@@ -186,6 +266,7 @@ export default function ManageBlogs() {
                                 <Label htmlFor="pinned">Pin as Featured Post</Label>
                             </div>
 
+                            {/* Footer Buttons */}
                             <div className="flex gap-3 pt-4">
                                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
                                     Cancel
@@ -205,6 +286,7 @@ export default function ManageBlogs() {
                         <TableHeader>
                             <TableRow className="bg-muted/50">
                                 <TableHead>Title</TableHead>
+                                <TableHead>Category</TableHead>
                                 <TableHead>Author</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Published</TableHead>
@@ -214,11 +296,11 @@ export default function ManageBlogs() {
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">Loading...</TableCell>
+                                    <TableCell colSpan={6} className="text-center h-24">Loading...</TableCell>
                                 </TableRow>
                             ) : posts.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                    <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                                         No posts found. Start writing!
                                     </TableCell>
                                 </TableRow>
@@ -230,6 +312,9 @@ export default function ManageBlogs() {
                                                 <FileText className="h-4 w-4 text-muted-foreground" />
                                                 {post.title}
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{post.category || "General"}</Badge>
                                         </TableCell>
                                         <TableCell>{post.author}</TableCell>
                                         <TableCell>

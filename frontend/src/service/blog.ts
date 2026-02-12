@@ -8,6 +8,9 @@ export interface BlogPost {
     author: string;
     isPinned: boolean;
     createdAt: string;
+    category: string;
+    imageUrl: string;
+    excerpt: string;
 }
 
 export interface BlogPostRequest {
@@ -15,6 +18,9 @@ export interface BlogPostRequest {
     content: string;
     author: string;
     isPinned: boolean;
+    category: string;
+    imageUrl: string;
+    excerpt: string;
 }
 
 const getAuthHeaders = () => {

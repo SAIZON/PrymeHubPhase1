@@ -32,6 +32,9 @@ public class BlogService {
         post.setContent(request.getContent());
         post.setAuthor(request.getAuthor());
         post.setPinned(request.isPinned());
+        post.setCategory(request.getCategory());
+        post.setImageUrl(request.getImageUrl());
+        post.setExcerpt(request.getExcerpt());
         post.setSlug(generateUniqueSlug(request.getTitle()));
         return blogRepository.save(post);
     }
