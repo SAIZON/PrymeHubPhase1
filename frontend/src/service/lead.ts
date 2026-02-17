@@ -1,5 +1,7 @@
 // FIX: Do not append '/public/leads' here. Just use the base API URL.
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
+
+const API_URL = "http://127.0.0.1:8080/api/v1";
 
 export interface Lead {
     id: number;

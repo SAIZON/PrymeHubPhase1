@@ -67,6 +67,9 @@ public class BlogService {
         post.setContent(request.getContent());
         post.setAuthor(request.getAuthor());
         post.setPinned(request.isPinned());
+        post.setCategory(request.getCategory());
+        post.setImageUrl(request.getImageUrl());
+        post.setExcerpt(request.getExcerpt());
 
         // Note: We deliberately do NOT update the 'slug' here to prevent
         // breaking SEO links (404 errors) if the title changes.
