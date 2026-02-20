@@ -19,6 +19,7 @@ public class DashboardService {
     private final NotificationRepository notificationRepository;
     private final ExternalLoanRepository externalLoanRepository;
     private final LoanProductRepository loanProductRepository;
+    private final LoanDocumentRepository loanDocumentRepository;
 
     private User getUser(String email) {
         return userRepository.findByEmail(email)
@@ -52,6 +53,29 @@ public class DashboardService {
                         app.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    // Add inside DashboardService class
+    public ApplicationDto getApplicationDetails(String email, Long applicationId) {
+        User user = getUser(email);
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        // SECURITY CHECK: Ensure the application belongs to the logged-in user
+        if (!app.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access Denied: You cannot view this application.");
+        }
+
+        return new ApplicationDto(
+                app.getId(),
+                app.getLoanType(),
+                app.getBankName() != null ? app.getBankName() : "Pryme Partner",
+//                app.getProductName(), // Ensure this field exists in DTO or remove if not needed
+                app.getAmount(),
+//                app.getTenureMonths(), // Ensure this is in DTO
+                app.getStatus().name(),
+                app.getCreatedAt()
+        );
     }
 
     @Transactional
@@ -105,7 +129,22 @@ public class DashboardService {
 
     // --- DOCUMENT METHODS ---
     public List<LoanDocumentDto> getUserDocuments(String email) {
-        // Placeholder until Document logic is fully implemented
-        return List.of();
+        User user = getUser(email);
+
+        // 1. Fetch all applications for this user
+        List<Application> userApplications = applicationRepository.findByUserId(user.getId());
+
+        // 2. Fetch all documents linked to these applications and convert to DTOs
+        return userApplications.stream()
+                .flatMap(app -> loanDocumentRepository.findByApplicationId(app.getId()).stream())
+                .map(doc -> new LoanDocumentDto(
+                        doc.getId(),
+                        doc.getFileName(),
+                        doc.getType() != null ? doc.getType().name() : "OTHER",
+                        doc.getStatus() != null ? doc.getStatus().name() : "PENDING",
+//                        doc.getAdminRemarks(), // Include remarks if your DTO supports it
+                        doc.getUploadedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }

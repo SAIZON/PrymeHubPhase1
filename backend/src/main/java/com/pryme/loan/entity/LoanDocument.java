@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "loan_documents") // Changed table name slightly for clarity
+@Table(name = "loan_documents")
 public class LoanDocument {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -19,6 +19,8 @@ public class LoanDocument {
     private Application application;
 
     private String fileName;
+
+    // In production, this stores the S3 Object Key, not a local C:/ drive path
     private String filePath;
 
     @Enumerated(EnumType.STRING)
@@ -26,6 +28,10 @@ public class LoanDocument {
 
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
+
+    // --- NEW FIELD ---
+    @Column(columnDefinition = "TEXT")
+    private String adminRemarks;
 
     @CreationTimestamp
     private LocalDateTime uploadedAt;

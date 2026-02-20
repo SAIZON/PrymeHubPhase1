@@ -21,24 +21,23 @@ import { useToast } from "@/hooks/use-toast";
 import { submitApplication } from "@/service/dashboard";
 import { Plus, Loader2 } from "lucide-react";
 
+// EXPORTED INTERFACE
 export interface PrefillData {
     id?: number;
     loanType?: string;
     maxLoanAmount?: string;
     bankName?: string;
-    // Add other fields you might pass
 }
 
-// 2. Update the Props interface
 interface NewApplicationModalProps {
     onSuccess: () => void;
-    initialData?: PrefillData | null; // <--- Use the type here
+    initialData?: PrefillData | null;
     isOpen?: boolean;
     onClose?: () => void;
 }
 
+// EXPORTED COMPONENT
 export function NewApplicationModal({ onSuccess, initialData, isOpen, onClose }: NewApplicationModalProps) {
-    // If isOpen is provided (controlled), use it. Otherwise internal state.
     const [internalOpen, setInternalOpen] = useState(false);
     const show = isOpen !== undefined ? isOpen : internalOpen;
     const setShow = onClose || setInternalOpen;
@@ -54,17 +53,15 @@ export function NewApplicationModal({ onSuccess, initialData, isOpen, onClose }:
         bankName: ""
     });
 
-    // Pre-fill form when initialData changes
     useEffect(() => {
         if (initialData) {
             setFormData({
                 loanType: initialData.loanType || "Personal Loan",
-                amount: initialData.maxLoanAmount ? initialData.maxLoanAmount.replace(/\D/g,'') : "", // Strip non-digits
-                tenureMonths: "12", // Default or extract from string like "5 Years"
-                productId: initialData.id,
-                bankName: initialData.bankName
+                amount: initialData.maxLoanAmount ? initialData.maxLoanAmount.replace(/\D/g,'') : "",
+                tenureMonths: "12",
+                productId: initialData.id || null,
+                bankName: initialData.bankName || ""
             });
-            // If controlled, ensure it's open
             if(isOpen === undefined) setInternalOpen(true);
         }
     }, [initialData, isOpen]);
@@ -104,7 +101,6 @@ export function NewApplicationModal({ onSuccess, initialData, isOpen, onClose }:
 
     return (
         <Dialog open={show} onOpenChange={setShow}>
-            {/* Only show trigger if not controlled externally */}
             {!isOpen && (
                 <DialogTrigger asChild>
                     <Button>
@@ -129,7 +125,7 @@ export function NewApplicationModal({ onSuccess, initialData, isOpen, onClose }:
                             value={formData.loanType}
                             onValueChange={(val) => setFormData({...formData, loanType: val})}
                             required
-                            disabled={!!formData.productId} // Lock if pre-selected
+                            disabled={!!formData.productId}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select loan type" />

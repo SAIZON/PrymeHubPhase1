@@ -1,8 +1,4 @@
 package com.pryme.loan.entity;
 
-public enum DocumentType {
-    KYC,
-    INCOME_PROOF,
-    PROPERTY_DOCUMENTS,
-    OTHER
-}
+
+public enum DocumentType { IDENTITY_PROOF, ADDRESS_PROOF, INCOME_PROOF, BANK_STATEMENT, OTHER }

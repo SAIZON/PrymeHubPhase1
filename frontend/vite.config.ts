@@ -7,11 +7,11 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
     server: {
         host: "::",
-        port: 5173, // CHANGED: 8080 -> 5173 to avoid conflict with Java Backend
+        port: 5173, // CHANGED: 8080 -> 5173 to stop conflict with Java
         hmr: {
             overlay: false,
         },
-        // Optional: Add proxy to simplify API calls during development
+        // Optional: Proxy /api requests to Backend automatically
         proxy: {
             "/api": {
                 target: "http://localhost:8080",

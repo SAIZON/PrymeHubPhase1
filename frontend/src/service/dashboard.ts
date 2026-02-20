@@ -25,7 +25,7 @@ export interface ApplicationRequest {
 }
 
 export interface Notification {
-    id: number;
+    id: string;
     title: string;
     message: string;
     type: string;
@@ -41,14 +41,20 @@ export interface ExternalLoan {
     emiAmount: number;
 }
 
-export interface LoanDocument {
-    id: string;
-    name: string;
-    category: string;
-    status: string;
-    uploadedAt: string;
+export interface ApplicationDetails extends Application {
+    productName: string;
+    tenureMonths: number;
+    // Add other fields you might want to show like rejectionReason, etc.
 }
 
+export interface LoanDocument {
+    id: string;
+    fileName: string;
+    category: string; // Maps to DocumentType enum
+    status: string;   // PENDING, VERIFIED, REJECTED
+    adminRemarks?: string;
+    uploadedAt: string;
+}
 // --- API FUNCTIONS ---
 
 export const getDashboardStats = async () => {
@@ -74,4 +80,27 @@ export const getDocuments = async () => {
 // FIX: Exported function for submitting application
 export const submitApplication = async (data: ApplicationRequest) => {
     return await api.post('/dashboard/apply', data);
+};
+
+export const getApplicationDetails = async (id: number) => {
+    return await api.get<ApplicationDetails>(`/dashboard/application/${id}`);
+};
+
+export const markNotificationAsRead = async (id: string) => {
+    // Note: Calling the new controller at /api/v1/notifications
+    return await api.patch<Notification>(`/notifications/${id}/read`);
+};
+
+export const uploadDocument = async (file: File, applicationId: number, type: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("applicationId", applicationId.toString());
+    formData.append("type", type);
+
+    // Use the api instance so the token is automatically attached
+    return await api.post('/documents/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data' // Required for file uploads
+        }
+    });
 };

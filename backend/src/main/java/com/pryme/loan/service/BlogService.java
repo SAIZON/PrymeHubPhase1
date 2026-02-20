@@ -71,6 +71,7 @@ public class BlogService {
         post.setImageUrl(request.getImageUrl());
         post.setExcerpt(request.getExcerpt());
 
+
         // Note: We deliberately do NOT update the 'slug' here to prevent
         // breaking SEO links (404 errors) if the title changes.
 

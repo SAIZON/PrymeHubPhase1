@@ -1,7 +1,3 @@
 package com.pryme.loan.entity;
 
-public enum DocumentStatus {
-    PENDING,
-    VERIFIED,
-    REJECTED
-}
+public enum DocumentStatus { PENDING, VERIFIED, REJECTED }

@@ -46,6 +46,11 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getExternalLoans(principal.getName()));
     }
 
+    @GetMapping("/application/{id}")
+    public ResponseEntity<ApplicationDto> getApplicationDetails(@PathVariable Long id, Principal principal) {
+        return ResponseEntity.ok(dashboardService.getApplicationDetails(principal.getName(), id));
+    }
+
     @GetMapping("/documents")
     public ResponseEntity<List<LoanDocumentDto>> getDocuments(Principal principal) {
         return ResponseEntity.ok(dashboardService.getUserDocuments(principal.getName()));
